@@ -37,8 +37,18 @@
 ## 2. Redis
 
 > 1. 知道redis是什么？
+>    - 非关系型数据库，也可以叫内存数据库
 > 2. 能干什么？
+>    - 存储访问频率高的数据
+>    - 共享内存
+>      - 服务器端 -> redis
 > 3. 怎么使用？
+>    - 常用的操作命令
+>      - 各种数据类型 -> 会查
+>    - redis的配置文件
+>    - redis的数据持久化
+>    - 写程序的时候如何对redis进行操作
+>      - 客户端 -> 服务器
 
 ### 2.1 基本知识点
 
@@ -316,11 +326,120 @@
   
   # 给key设置一个生存时间，当key过期时，会自动删除
   EXPIRE key seconds
+  
+  # 返回key的value的类型
+  TYPE key
   ~~~
 
-  
+  ### 2.3 配置文件
+
+> 配置文件是给redis服务器使用的
+
+  1. 配置文件位置
+
+     - 从源码安装目录中找 -> redis.conf
+
+  2. 配置文件配置项
+
+     ~~~shell
+     # redis绑定谁之后，谁就能访问redis服务器
+     # 注释表示任意一台电脑都能访问
+     bind 127.0.0.1 192.168.1.100
+     
+     # 保护模式，如果要远程客户端访问服务器，该模式要关闭
+     protected-mode yes
+     
+     # redis服务器启动的时候绑定的端口，默认是6379
+     port 6379
+     
+     # 超时时长，0表示关闭，大于0表示开启
+     timeout 0
+     
+     # 表示tcp活跃时长
+     tcp-keepalive 300
+     
+     # no表示启动之后不是守护进程，yes表示是守护进程
+     daemonize no/yes
+     
+     # 如果服务器是守护进程，那么就会生成一个pid文件，路径如下
+     # ./ 表示服务器启动的目录，redis-server 目录
+     pidfile /var/run/redis_6379.pid
+     
+     # 日志级别
+     loglevel notice
+     	# 如果服务器是守护进程，才会写日志文件
+     	logfile "" -> 这是没写
+     	logfile ./redis.log
+     
+     # redis中数据库格式
+     databases 16
+     	- 切换 select dbID [dbID = 0 ~ 16-1]
+     
+     ~~~
+
+### 2.4 redis数据持久化
+
+> 持久化：数据从内存到磁盘的过程
+
+持久化的两种方式
+
+- rdb方式
+  - 这是一种默认的持久化方式，默认打开
+  - 磁盘的持久化文件xxx.rdb
+  - 将内存数据以二进制的方式直接写入磁盘文件
+  - 文件比较小，恢复的时候时间段，效率高
+  - 以用户设定的频率 -> 容易丢数据
+  - 数据完整性相对较低
+- aof方式
+  - 默认是关闭的
+  - 磁盘的持久化文件xxx.aof
+  - 直接将生成数据的命令写入磁盘文件
+  - 文件比较大，恢复时间长，效率低
+  - 以某种频率 -> 1sec
+  - 数据完整性高
+
+~~~shell
+# rdb 同步频率，任意一个满足都可以
+save 900 1
+sava 300 10
+save 60 10000
+# rdb文件的名字
+dbfilename dump.rdb
+# 生成的持久化文件保存的那个目录，rdb和aof
+dir ./
+# aof模式是不是要打开
+appendonly no/yes
+# 设置aof文件的名字
+appendfinename "appendonly.aof"
+# aof更新的频率
+appendfsync always
+appendfsync everytsec
+appendfsync no  # 不是不同步，操作系统强制刷新才同步
+~~~
+
+1. aof和rdb能不能同时打开？
+
+   - 可以
+
+2. aof和rdb能不能同时关闭？
+
+   - 可以
+   - rdb如何关闭
+
+   ~~~shell
+   save ""
+   ~~~
+
+   
+
+3. 两种模式同时开启，如何要进行数据恢复，如何选择？
+
+   - 效率上考虑：rdb模式
+   - 数据完整性：aof模式
 
 ## 3. Hiredis的使用
+
+1. 
 
 ## 4. 复习
 
@@ -347,4 +466,4 @@
 
      - 客户端编写
 
-     
+      
